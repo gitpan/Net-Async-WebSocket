@@ -11,7 +11,7 @@ use base qw( Net::Async::WebSocket::Protocol );
 
 use Carp;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Protocol::WebSocket::Handshake::Client;
 
@@ -22,7 +22,33 @@ C<IO::Async>
 
 =head1 SYNOPSIS
 
- TODO
+ use IO::Async::Loop;
+ use Net::Async::WebSocket::Client;
+
+ my $client = Net::Async::WebSocket::Client->new(
+    on_frame => sub {
+       my ( $self, $frame ) = @_;
+       print $frame;
+    },
+ );
+
+ my $loop = IO::Async::Loop->new;
+ $loop->add( $client );
+ 
+ $client->connect(
+    host => $HOST,
+    service => $PORT,
+    url => "ws://$HOST:$PORT/",
+
+    on_connected => sub {
+       $client->send_frame( "Hello, world!\n" );
+    },
+
+    on_connect_error => sub { die "Cannot connect - $_[-1]" },
+    on_resolve_error => sub { die "Cannot resolve - $_[-1]" },
+ );
+
+ $loop->loop_forever;
 
 =head1 DESCRIPTION
 
@@ -68,6 +94,7 @@ sub connect
       # TODO: Protocol->connect
       $self->get_loop->connect(
          %params,
+         socktype => 'stream',
          on_stream => sub {
             my ( $stream ) = @_;
 
@@ -95,8 +122,7 @@ sub connect
    $self->SUPER::configure( on_read => sub {
       my ( undef, $buffref, $closed ) = @_;
 
-      $hs->parse( $$buffref );
-      $$buffref = "";
+      $hs->parse( $$buffref ); # modifies $$buffref
 
       if( $hs->is_done ) {
          $self->SUPER::configure( on_read => undef );

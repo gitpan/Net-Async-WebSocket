@@ -1,4 +1,8 @@
 Revision history for Net-Async-WebSocket
 
+0.02    CHANGES:
+         * Bugfixes for getaddrinfo that isn't on Linux
+         * Created some example scripts and SYNOPSIS code samples
+
 0.01    First version, released on an unsuspecting world.
 

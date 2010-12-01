@@ -11,7 +11,7 @@ use base qw( IO::Async::Protocol::Stream );
 
 use Carp;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Protocol::WebSocket::Frame;
 
@@ -19,15 +19,17 @@ use Protocol::WebSocket::Frame;
 
 C<Net::Async::WebSocket::Protocol> - send and receive WebSocket frames
 
-=head1 SYNOPSIS
-
- TODO
-
 =head1 DESCRIPTION
 
 This subclass of L<IO::Async::Protocol::Stream> implements an established
 WebSocket connection, that has already completed its setup handshaking and is
 ready to pass frames.
+
+Objects of this type would not normally be constructed directly. For WebSocket
+clients, see L<Net::Async::WebSocket::Client>, which is a subclass of this.
+For WebSocket servers, see L<Net::Async::WebSocket::Server>, which constructs
+objects in this class when it accepts a new connection and passes it to its
+event handler.
 
 =cut
 
@@ -74,8 +76,7 @@ sub on_read
 
    my $framebuffer = $self->{framebuffer};
 
-   $framebuffer->append( $$buffref );
-   $$buffref = "";
+   $framebuffer->append( $$buffref ); # modifies $$buffref
 
    while( my $frame = $framebuffer->next ) {
       ( $self->{on_frame} || $self->can( "on_frame" ) )->( $self, $frame );

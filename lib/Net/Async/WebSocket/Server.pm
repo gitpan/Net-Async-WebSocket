@@ -11,7 +11,7 @@ use base qw( IO::Async::Listener );
 
 use Carp;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Net::Async::WebSocket::Protocol;
 
@@ -23,7 +23,33 @@ C<Net::Async::WebSocket::Server> - serve WebSocket clients using C<IO::Async>
 
 =head1 SYNOPSIS
 
- TODO
+ use IO::Async::Loop;
+ use Net::Async::WebSocket::Server;
+ 
+ my $server = Net::Async::WebSocket::Server->new(
+    on_client => sub {
+       my ( undef, $client ) = @_;
+ 
+       $client->configure(
+          on_frame => sub {
+             my ( $self, $frame ) = @_;
+             $self->send_frame( $frame );
+          },
+       );
+    }
+ );
+ 
+ my $loop = IO::Async::Loop->new;
+ $loop->add( $server );
+ 
+ $server->listen(
+    service => 3000,
+ 
+    on_listen_error => sub { die "Cannot listen - $_[-1]" },
+    on_resolve_error => sub { die "Cannot resolve - $_[-1]" },
+ );
+ 
+ $loop->loop_forever;
 
 =head1 DESCRIPTION
 
@@ -48,8 +74,7 @@ sub new
             on_read => sub {
                my ( $stream, $buffref, $closed ) = @_;
 
-               $hs->parse( $$buffref );
-               $$buffref = "";
+               $hs->parse( $$buffref ); # modifies $$buffref
 
                if( $hs->is_done ) {
                   $stream->write( $hs->to_string );
@@ -113,6 +138,17 @@ sub new_client
    my ( $stream ) = @_;
 
    return Net::Async::WebSocket::Protocol->new( transport => $stream );
+}
+
+sub listen
+{
+   my $self = shift;
+   my %params = @_;
+
+   $self->SUPER::listen(
+      socktype => 'stream',
+      %params,
+   );
 }
 
 # Keep perl happy; keep Britain tidy

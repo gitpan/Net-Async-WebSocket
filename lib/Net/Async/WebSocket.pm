@@ -8,15 +8,11 @@ package Net::Async::WebSocket;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 NAME
 
 C<Net::Async::WebSocket> - use WebSockets with C<IO::Async>
-
-=head1 SYNOPSIS
-
- TODO
 
 =head1 DESCRIPTION
 
