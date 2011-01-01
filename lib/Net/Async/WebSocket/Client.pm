@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2010 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2010-2011 -- leonerd@leonerd.org.uk
 
 package Net::Async::WebSocket::Client;
 
@@ -11,7 +11,7 @@ use base qw( Net::Async::WebSocket::Protocol );
 
 use Carp;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Protocol::WebSocket::Handshake::Client;
 
@@ -90,48 +90,31 @@ sub connect
 
    my $on_connected = delete $params{on_connected} or croak "Expected 'on_connected' as a CODE ref";
 
-   unless( $params{transport} ) {
-      # TODO: Protocol->connect
-      $self->get_loop->connect(
-         %params,
-         socktype => 'stream',
-         on_stream => sub {
-            my ( $stream ) = @_;
-
-            $self->connect(
-               %params,
-               transport => $stream,
-               on_connected => $on_connected,
-            );
-         },
-      );
-
-      return;
-   }
-
-   my $transport = delete $params{transport};
-   
-   $self->configure( transport => $transport );
-
    my $hs = Protocol::WebSocket::Handshake::Client->new(
       url => $params{url},
    );
 
-   $self->write( $hs->to_string );
+   $self->SUPER::connect(
+      %params,
 
-   $self->SUPER::configure( on_read => sub {
-      my ( undef, $buffref, $closed ) = @_;
+      on_connected => sub {
+         $self->write( $hs->to_string );
 
-      $hs->parse( $$buffref ); # modifies $$buffref
+         $self->SUPER::configure( on_read => sub {
+            my ( undef, $buffref, $closed ) = @_;
 
-      if( $hs->is_done ) {
-         $self->SUPER::configure( on_read => undef );
+            $hs->parse( $$buffref ); # modifies $$buffref
 
-         $on_connected->( $self );
-      }
+            if( $hs->is_done ) {
+               $self->SUPER::configure( on_read => undef );
 
-      return 0;
-   } );
+               $on_connected->( $self );
+            }
+
+            return 0;
+         } );
+      },
+   );
 }
 
 # Keep perl happy; keep Britain tidy

@@ -11,7 +11,7 @@ use base qw( IO::Async::Listener );
 
 use Carp;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Net::Async::WebSocket::Protocol;
 

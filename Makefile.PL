@@ -6,6 +6,7 @@ WriteMakefile
           'VERSION_FROM' => 'lib/Net/Async/WebSocket.pm',
           'PREREQ_PM' => {
                            'IO::Async::Listener' => '0.30',
+                           'IO::Async::Protocol::Stream' => '0.34',
                            'Protocol::WebSocket' => '0.0003',
                            'Protocol::WebSocket::Frame' => 0,
                            'Protocol::WebSocket::Handshake::Client' => 0,
