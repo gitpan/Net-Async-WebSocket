@@ -11,7 +11,7 @@ use base qw( IO::Async::Protocol::Stream );
 
 use Carp;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Protocol::WebSocket::Frame;
 
@@ -100,14 +100,13 @@ sub send_frame
    my $self = shift;
    my ( $frame ) = @_;
 
-   $self->write( Protocol::WebSocket::Frame->new( $frame )->to_string );
+   $self->write( Protocol::WebSocket::Frame->new( $frame )->to_bytes );
 }
-
-# Keep perl happy; keep Britain tidy
-1;
-
-__END__
 
 =head1 AUTHOR
 
 Paul Evans <leonerd@leonerd.org.uk>
+
+=cut
+
+0x55AA;

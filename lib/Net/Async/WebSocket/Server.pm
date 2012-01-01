@@ -11,7 +11,7 @@ use base qw( IO::Async::Listener );
 
 use Carp;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Net::Async::WebSocket::Protocol;
 
@@ -151,11 +151,10 @@ sub listen
    );
 }
 
-# Keep perl happy; keep Britain tidy
-1;
-
-__END__
-
 =head1 AUTHOR
 
 Paul Evans <leonerd@leonerd.org.uk>
+
+=cut
+
+0x55AA;

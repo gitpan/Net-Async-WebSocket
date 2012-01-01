@@ -49,7 +49,7 @@ $serversock->write( $h->to_string );
 
 wait_for { $connected };
 
-$serversock->write( Protocol::WebSocket::Frame->new( "Here is my message" )->to_string );
+$serversock->write( Protocol::WebSocket::Frame->new( "Here is my message" )->to_bytes );
 
 wait_for { @frames };
 

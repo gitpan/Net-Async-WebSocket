@@ -63,7 +63,7 @@ wait_for_stream { $h->parse( $stream ); $stream = ""; $h->is_done } $clientsock 
 
 ok( defined $client, '$client is defined' );
 
-$clientsock->write( Protocol::WebSocket::Frame->new( "Here is my message" )->to_string );
+$clientsock->write( Protocol::WebSocket::Frame->new( "Here is my message" )->to_bytes );
 
 wait_for { @frames };
 

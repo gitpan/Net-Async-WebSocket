@@ -8,7 +8,7 @@ my $build = Module::Build->new(
    requires => {
       'IO::Async::Listener' => '0.30',
       'IO::Async::Protocol::Stream' => '0.34',
-      'Protocol::WebSocket' => '0.0003',
+      'Protocol::WebSocket' => '0.00902',
       'Protocol::WebSocket::Frame' => 0,
       'Protocol::WebSocket::Handshake::Client' => 0,
       'Protocol::WebSocket::Handshake::Server' => 0,
@@ -16,10 +16,11 @@ my $build = Module::Build->new(
    build_requires => {
       'Test::More' => 0,
    },
+   auto_configure_requires => 0, # Don't add M::B to configure_requires
    license => 'perl',
    create_makefile_pl => 'traditional',
    create_license => 1,
    create_readme  => 1,
 );
-  
+
 $build->create_build_script;

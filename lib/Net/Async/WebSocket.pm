@@ -8,7 +8,7 @@ package Net::Async::WebSocket;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 NAME
 
@@ -28,11 +28,6 @@ module C<$VERSION> and top-level documentation.
 
 =cut
 
-# Keep perl happy; keep Britain tidy
-1;
-
-__END__
-
 =head1 SEE ALSO
 
 =over 8
@@ -46,3 +41,7 @@ L<Protocol::WebSocket> - WebSocket protocol
 =head1 AUTHOR
 
 Paul Evans <leonerd@leonerd.org.uk>
+
+=cut
+
+0x55AA;

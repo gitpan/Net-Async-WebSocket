@@ -1,5 +1,5 @@
 NAME
-    "Net::Async::WebSocket" - use WebSockets with "IO::Async"
+    `Net::Async::WebSocket' - use WebSockets with `IO::Async'
 
 DESCRIPTION
     This distribution provides modules that implement the WebSocket
@@ -11,7 +11,7 @@ DESCRIPTION
     To implement a client, see Net::Async::WebSocket::Client.
 
     This module itself does not provide any code, and exists only to provide
-    the module $VERSION and top-level documentation.
+    the module `$VERSION' and top-level documentation.
 
 SEE ALSO
     *       Protocol::WebSocket - WebSocket protocol

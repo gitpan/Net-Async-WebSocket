@@ -11,7 +11,7 @@ use base qw( Net::Async::WebSocket::Protocol );
 
 use Carp;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Protocol::WebSocket::Handshake::Client;
 
@@ -117,11 +117,10 @@ sub connect
    );
 }
 
-# Keep perl happy; keep Britain tidy
-1;
-
-__END__
-
 =head1 AUTHOR
 
 Paul Evans <leonerd@leonerd.org.uk>
+
+=cut
+
+0x55AA;
