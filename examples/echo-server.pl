@@ -24,7 +24,7 @@ my $loop = IO::Async::Loop->new;
 $loop->add( $server );
 
 $server->listen(
-   host => "localhost",
+   family => "inet",
    service => $PORT,
 
    on_listen_error => sub { die "Cannot listen - $_[-1]" },

@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2010 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2010-2012 -- leonerd@leonerd.org.uk
 
 package Net::Async::WebSocket::Protocol;
 
@@ -11,7 +11,7 @@ use base qw( IO::Async::Protocol::Stream );
 
 use Carp;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Protocol::WebSocket::Frame;
 
@@ -89,18 +89,18 @@ sub on_read
 
 =cut
 
-=head2 $self->send_frame( $frame )
+=head2 $self->send_frame( @args )
 
-Sends a frame to the peer containing containing the given string.
+Sends a frame to the peer containing containing the given string. The
+arguments are passed to L<Protocol::WebSocket::Frame>'s C<new> method.
 
 =cut
 
 sub send_frame
 {
    my $self = shift;
-   my ( $frame ) = @_;
 
-   $self->write( Protocol::WebSocket::Frame->new( $frame )->to_bytes );
+   $self->write( Protocol::WebSocket::Frame->new( @_ )->to_bytes );
 }
 
 =head1 AUTHOR

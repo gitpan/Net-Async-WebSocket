@@ -1,5 +1,9 @@
 Revision history for Net-Async-WebSocket
 
+0.05    CHANGES:
+         * Pass all arguments from send_frame into Protocol::WebSocket::Frame
+           constructor (RT79202)
+
 0.04    CHANGES:
          * Updated for Protocol::WebSocket 0.009 - s/to_string/to_bytes/
 
