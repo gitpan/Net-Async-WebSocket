@@ -1,8 +1,9 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 use strict;
+use warnings;
 
-use Test::More tests => 5;
+use Test::More;
 use IO::Async::Test;
 use IO::Async::Loop;
 
@@ -26,6 +27,11 @@ my @frames;
 
 my $server = Net::Async::WebSocket::Server->new(
    handle => $serversock,
+
+   on_handshake => sub {
+     my ( $self, $stream, $hs, $continue ) = @_;
+     $continue->( $hs->req->origin eq "http://localhost" );
+   },
 
    on_client => sub {
       my ( undef, $thisclient ) = @_;
@@ -79,3 +85,5 @@ my $frame;
 wait_for_stream { $fb->append( $stream ); $stream = ""; $frame = $fb->next } $clientsock => $stream;
 
 is( $frame, "Here is my response", 'responded $frame' );
+
+done_testing;

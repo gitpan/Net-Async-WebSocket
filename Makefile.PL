@@ -11,7 +11,7 @@ WriteMakefile
                    'Protocol::WebSocket::Frame' => 0,
                    'Protocol::WebSocket::Handshake::Client' => 0,
                    'Protocol::WebSocket::Handshake::Server' => 0,
-                   'Test::More' => 0
+                   'Test::More' => '0.88'
                  },
   'INSTALLDIRS' => 'site',
   'EXE_FILES' => [],

@@ -1,8 +1,9 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 use strict;
+use warnings;
 
-use Test::More tests => 2;
+use Test::More;
 use IO::Async::Test;
 use IO::Async::Loop;
 
@@ -78,3 +79,5 @@ $acceptedclient->send_frame( "Here is my response" );
 wait_for { @clientframes };
 
 is_deeply( \@clientframes, [ "Here is my response" ], 'received @clientframes' );
+
+done_testing;

@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2010-2012 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2010-2013 -- leonerd@leonerd.org.uk
 
 package Net::Async::WebSocket::Protocol;
 
@@ -11,7 +11,7 @@ use base qw( IO::Async::Protocol::Stream );
 
 use Carp;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Protocol::WebSocket::Frame;
 
@@ -79,7 +79,7 @@ sub on_read
    $framebuffer->append( $$buffref ); # modifies $$buffref
 
    while( my $frame = $framebuffer->next ) {
-      ( $self->{on_frame} || $self->can( "on_frame" ) )->( $self, $frame );
+      $self->invoke_event( on_frame => $frame );
    }
 
    return 0;

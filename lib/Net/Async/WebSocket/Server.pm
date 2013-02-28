@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2010 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2010-2013 -- leonerd@leonerd.org.uk
 
 package Net::Async::WebSocket::Server;
 
@@ -11,7 +11,7 @@ use base qw( IO::Async::Listener );
 
 use Carp;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Net::Async::WebSocket::Protocol;
 
@@ -64,7 +64,6 @@ sub new
    my $class = shift;
    return $class->SUPER::new(
       @_,
-      # TODO: IO::Async::Listener -> on_stream method
       on_stream => sub {
          my ( $self, $stream ) = @_;
 
@@ -77,18 +76,23 @@ sub new
                $hs->parse( $$buffref ); # modifies $$buffref
 
                if( $hs->is_done ) {
-                  $stream->write( $hs->to_string );
+                  my $on_handshake = $self->can_event( "on_handshake" ) ||
+                     sub { $_[3]->( 1 ) };
 
-                  $self->remove_child( $stream );
+                  $on_handshake->( $self, $stream, $hs, sub {
+                     my ( $ok ) = @_;
 
-                  my $client = $self->new_client( $stream );
+                     $self->remove_child( $stream );
 
-                  my $on_client = $self->{on_client} ||
-                                  $self->can( "on_client" );
+                     return unless $ok;
 
-                  $on_client->( $self, $client );
+                     $stream->write( $hs->to_string );
 
-                  $self->add_child( $client );
+                     my $client = $self->new_client( $stream );
+                     $self->add_child( $client );
+
+                     $self->invoke_event( on_client => $client );
+                  } );
                }
 
                return 0;
@@ -116,6 +120,23 @@ inital handshake.
 It will be passed a new instance of a L<Net::Async::WebSocket::Protocol>
 object, wrapping the client connection.
 
+=item on_handshake => CODE
+
+A callback that is invoked when a handshake has been requested.
+
+ $on_handshake->( $self, $hs, $continuation )
+
+Calling C<$continuation> with a true value will complete the handshake, false
+will drop the connection.
+
+This is useful for filtering on origin, for example:
+
+ on_handshake => sub {
+    my ( $self, $hs, $continuation ) = @_;
+
+    $continuation->( $hs->req->origin eq "http://localhost" );
+ }
+
 =back
 
 =cut
@@ -125,7 +146,7 @@ sub configure
    my $self = shift;
    my %params = @_;
 
-   foreach (qw( on_client )) {
+   foreach (qw( on_client on_handshake )) {
       $self->{$_} = delete $params{$_};
    }
 

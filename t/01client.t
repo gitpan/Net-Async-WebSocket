@@ -1,8 +1,9 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 use strict;
+use warnings;
 
-use Test::More tests => 4;
+use Test::More;
 use IO::Async::Test;
 use IO::Async::Loop;
 use IO::Async::Stream;
@@ -65,3 +66,5 @@ my $frame;
 wait_for_stream { $fb->append( $stream ); $stream = ""; $frame = $fb->next } $serversock => $stream;
 
 is( $frame, "Here is my response", 'responded $frame' );
+
+done_testing;
