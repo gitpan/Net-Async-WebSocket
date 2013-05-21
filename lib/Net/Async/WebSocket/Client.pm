@@ -11,7 +11,7 @@ use base qw( Net::Async::WebSocket::Protocol );
 
 use Carp;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use Protocol::WebSocket::Handshake::Client;
 

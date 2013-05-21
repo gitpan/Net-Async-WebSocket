@@ -6,6 +6,7 @@ use warnings;
 use Test::More;
 use IO::Async::Test;
 use IO::Async::Loop;
+use IO::Async::OS;
 use IO::Async::Stream;
 
 use Net::Async::WebSocket::Client;
@@ -15,7 +16,7 @@ use Protocol::WebSocket::Handshake::Server;
 my $loop = IO::Async::Loop->new;
 testing_loop( $loop );
 
-my ( $serversock, $clientsock ) = $loop->socketpair or
+my ( $serversock, $clientsock ) = IO::Async::OS->socketpair or
    die "Cannot socketpair - $!";
 
 my @frames;

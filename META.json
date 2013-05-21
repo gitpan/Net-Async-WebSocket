@@ -16,6 +16,7 @@
    "prereqs" : {
       "build" : {
          "requires" : {
+            "IO::Async::OS" : "0",
             "Test::More" : "0.88"
          }
       },
@@ -33,19 +34,19 @@
    "provides" : {
       "Net::Async::WebSocket" : {
          "file" : "lib/Net/Async/WebSocket.pm",
-         "version" : "0.06"
+         "version" : "0.07"
       },
       "Net::Async::WebSocket::Client" : {
          "file" : "lib/Net/Async/WebSocket/Client.pm",
-         "version" : "0.06"
+         "version" : "0.07"
       },
       "Net::Async::WebSocket::Protocol" : {
          "file" : "lib/Net/Async/WebSocket/Protocol.pm",
-         "version" : "0.06"
+         "version" : "0.07"
       },
       "Net::Async::WebSocket::Server" : {
          "file" : "lib/Net/Async/WebSocket/Server.pm",
-         "version" : "0.06"
+         "version" : "0.07"
       }
    },
    "release_status" : "stable",
@@ -54,5 +55,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.06"
+   "version" : "0.07"
 }
