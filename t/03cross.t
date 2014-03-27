@@ -55,18 +55,11 @@ my $client = Net::Async::WebSocket::Client->new(
 
 $loop->add( $client );
 
-my $connected;
 $client->connect(
    host    => $serversock->sockhost,
    service => $serversock->sockport,
    url => "ws://localhost/test",
-   on_connected => sub { $connected++ },
-
-   on_resolve_error => sub { die "Test failed early - $_[-1]" },
-   on_connect_error => sub { die "Test failed early - $_[-1]" },
-);
-
-wait_for { $connected };
+)->get;
 
 $client->send_frame( "Here is my message" );
 

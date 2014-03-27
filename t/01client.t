@@ -34,13 +34,10 @@ isa_ok( $client, "Net::Async::WebSocket::Client", '$client' );
 
 $loop->add( $client );
 
-my $connected;
-$client->connect(
-   # TODO: Consider direct handle => shortcut
-   transport => IO::Async::Stream->new( handle => $clientsock ),
+my $f = $client->connect_handle( $clientsock,
    url => "ws://localhost/test",
-   on_connected => sub { $connected++ },
 );
+$f->on_fail( sub { $f->get } );
 
 my $h = Protocol::WebSocket::Handshake::Server->new;
 
@@ -49,23 +46,39 @@ wait_for_stream { $h->parse( $stream ); $stream = ""; $h->is_done } $serversock 
 
 $serversock->write( $h->to_string );
 
-wait_for { $connected };
+wait_for { $f->is_ready };
+$f->get;
 
-$serversock->write( Protocol::WebSocket::Frame->new( "Here is my message" )->to_bytes );
+# receive
+{
+   $serversock->write( Protocol::WebSocket::Frame->new( "Here is my message" )->to_bytes );
 
-wait_for { @frames };
+   wait_for { @frames };
 
-is_deeply( \@frames, [ "Here is my message" ], 'received @frames' );
+   is_deeply( \@frames, [ "Here is my message" ], 'received @frames' );
 
-undef @frames;
+   undef @frames;
+}
 
-$client->send_frame( "Here is my response" );
+# send
+{
+   $client->send_frame( "Here is my response" );
 
-my $fb = Protocol::WebSocket::Frame->new;
-$stream = "";
-my $frame;
-wait_for_stream { $fb->append( $stream ); $stream = ""; $frame = $fb->next } $serversock => $stream;
+   my $fb = Protocol::WebSocket::Frame->new;
+   $stream = "";
+   my $frame;
+   wait_for_stream { $fb->append( $stream ); $stream = ""; $frame = $fb->next } $serversock => $stream;
 
-is( $frame, "Here is my response", 'responded $frame' );
+   is( $frame, "Here is my response", 'responded $frame' );
+}
+
+# frames with false values
+{
+   $serversock->write( Protocol::WebSocket::Frame->new( "" )->to_bytes );
+
+   wait_for { @frames };
+
+   is_deeply( \@frames, [ "" ], 'received frame with false value' );
+}
 
 done_testing;

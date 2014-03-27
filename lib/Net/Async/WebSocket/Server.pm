@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2010-2013 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2010-2014 -- leonerd@leonerd.org.uk
 
 package Net::Async::WebSocket::Server;
 
@@ -11,7 +11,7 @@ use base qw( IO::Async::Listener );
 
 use Carp;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use Net::Async::WebSocket::Protocol;
 
@@ -64,14 +64,15 @@ sub new
    my $class = shift;
    return $class->SUPER::new(
       @_,
-      on_stream => sub {
-         my ( $self, $stream ) = @_;
+      handle_class => "Net::Async::WebSocket::Protocol",
+      on_accept => sub {
+         my ( $self, $client ) = @_;
 
          my $hs = Protocol::WebSocket::Handshake::Server->new;
 
-         $stream->configure(
+         $client->configure(
             on_read => sub {
-               my ( $stream, $buffref, $closed ) = @_;
+               my ( $client, $buffref, $closed ) = @_;
 
                $hs->parse( $$buffref ); # modifies $$buffref
 
@@ -79,18 +80,18 @@ sub new
                   my $on_handshake = $self->can_event( "on_handshake" ) ||
                      sub { $_[3]->( 1 ) };
 
-                  $on_handshake->( $self, $stream, $hs, sub {
+                  $on_handshake->( $self, $client, $hs, sub {
                      my ( $ok ) = @_;
 
-                     $self->remove_child( $stream );
+                     unless( $ok ) {
+                        $self->remove_child( $client );
+                        return;
+                     }
 
-                     return unless $ok;
+                     $client->configure( on_read => undef );
+                     $client->write( $hs->to_string );
 
-                     $stream->write( $hs->to_string );
-
-                     my $client = $self->new_client( $stream );
-                     $self->add_child( $client );
-
+                     $client->debug_printf( "HANDSHAKE done" );
                      $self->invoke_event( on_client => $client );
                   } );
                }
@@ -99,7 +100,7 @@ sub new
             },
          );
 
-         $self->add_child( $stream );
+         $self->add_child( $client );
       },
    );
 }
@@ -124,7 +125,7 @@ object, wrapping the client connection.
 
 A callback that is invoked when a handshake has been requested.
 
- $on_handshake->( $self, $hs, $continuation )
+ $on_handshake->( $self, $client, $hs, $continuation )
 
 Calling C<$continuation> with a true value will complete the handshake, false
 will drop the connection.
@@ -132,7 +133,7 @@ will drop the connection.
 This is useful for filtering on origin, for example:
 
  on_handshake => sub {
-    my ( $self, $hs, $continuation ) = @_;
+    my ( $self, $client, $hs, $continuation ) = @_;
 
     $continuation->( $hs->req->origin eq "http://localhost" );
  }
@@ -147,18 +148,10 @@ sub configure
    my %params = @_;
 
    foreach (qw( on_client on_handshake )) {
-      $self->{$_} = delete $params{$_};
+      $self->{$_} = delete $params{$_} if exists $params{$_};
    }
 
    $self->SUPER::configure( %params );
-}
-
-sub new_client
-{
-   my $self = shift;
-   my ( $stream ) = @_;
-
-   return Net::Async::WebSocket::Protocol->new( transport => $stream );
 }
 
 sub listen

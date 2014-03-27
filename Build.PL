@@ -6,7 +6,7 @@ use Module::Build;
 my $build = Module::Build->new(
    module_name => 'Net::Async::WebSocket',
    requires => {
-      'IO::Async::Listener' => '0.30',
+      'IO::Async::Listener' => '0.61', # handle_class
       'IO::Async::Protocol::Stream' => '0.34',
       'Protocol::WebSocket' => '0.00902',
       'Protocol::WebSocket::Frame' => 0,

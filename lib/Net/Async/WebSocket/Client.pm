@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2010-2011 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2010-2014 -- leonerd@leonerd.org.uk
 
 package Net::Async::WebSocket::Client;
 
@@ -11,7 +11,7 @@ use base qw( Net::Async::WebSocket::Protocol );
 
 use Carp;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use Protocol::WebSocket::Handshake::Client;
 
@@ -61,19 +61,55 @@ server to establish a WebSocket connection for passing frames.
 
 =cut
 
-=head2 $self->connect( %params )
+sub _do_handshake
+{
+   my $self = shift;
+   my %params = @_;
+
+   my $hs = Protocol::WebSocket::Handshake::Client->new(
+      url => $params{url},
+   );
+
+   $self->debug_printf( "HANDSHAKE start" );
+   $self->write( $hs->to_string );
+
+   my $f = $self->loop->new_future;
+   $self->SUPER::configure( on_read => sub {
+      my ( undef, $buffref, $closed ) = @_;
+
+      $hs->parse( $$buffref ); # modifies $$buffref
+
+      if( $hs->is_done ) {
+         $self->debug_printf( "HANDSHAKE done" );
+         $self->SUPER::configure( on_read => undef );
+
+         $f->done( $self );
+      }
+
+      return 0;
+   } );
+
+   return $f;
+}
+
+=head2 $self->connect( %params ) ==> ( $self )
 
 Connect to a WebSocket server. Takes the following named parameters:
 
 =over 8
 
-=item transport => IO::Async::Stream
-
-The underlying transport to use for this connection.
-
 =item url => STRING
 
 URL to provide to WebSocket handshake
+
+=back
+
+=head2 $self->connect( %params )
+
+When not returning a C<Future>, the following additional parameters provide
+continuations:
+
+=over 8
 
 =item on_connected => CODE
 
@@ -88,33 +124,34 @@ sub connect
    my $self = shift;
    my %params = @_;
 
-   my $on_connected = delete $params{on_connected} or croak "Expected 'on_connected' as a CODE ref";
+   my $f = $self->SUPER::connect( %params )->then( sub {
+      my ( $self ) = @_;
 
-   my $hs = Protocol::WebSocket::Handshake::Client->new(
-      url => $params{url},
-   );
+      $self->_do_handshake( %params );
+   });
 
-   $self->SUPER::connect(
-      %params,
+   $f->on_done( $params{on_connected} ) if $params{on_connected};
 
-      on_connected => sub {
-         $self->write( $hs->to_string );
+   return $f if defined wantarray;
 
-         $self->SUPER::configure( on_read => sub {
-            my ( undef, $buffref, $closed ) = @_;
+   $f->on_ready( sub { undef $f } ); # intentional cycle
+}
 
-            $hs->parse( $$buffref ); # modifies $$buffref
+=head2 $client->connect_handle( $handle, %params ) ==> ( $self )
 
-            if( $hs->is_done ) {
-               $self->SUPER::configure( on_read => undef );
+Sets the read and write handles to the IO reference given, then performs the
+initial handshake using the parameters given. These are as for C<connect>.
 
-               $on_connected->( $self );
-            }
+=cut
 
-            return 0;
-         } );
-      },
-   );
+sub connect_handle
+{
+   my $self = shift;
+   my ( $handle, %params ) = @_;
+
+   $self->set_handle( $handle );
+
+   $self->_do_handshake( %params );
 }
 
 =head1 AUTHOR

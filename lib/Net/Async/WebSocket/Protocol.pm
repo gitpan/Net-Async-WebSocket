@@ -1,17 +1,17 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2010-2013 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2010-2014 -- leonerd@leonerd.org.uk
 
 package Net::Async::WebSocket::Protocol;
 
 use strict;
 use warnings;
-use base qw( IO::Async::Protocol::Stream );
+use base qw( IO::Async::Stream );
 
 use Carp;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use Protocol::WebSocket::Frame;
 
@@ -21,9 +21,9 @@ C<Net::Async::WebSocket::Protocol> - send and receive WebSocket frames
 
 =head1 DESCRIPTION
 
-This subclass of L<IO::Async::Protocol::Stream> implements an established
-WebSocket connection, that has already completed its setup handshaking and is
-ready to pass frames.
+This subclass of L<IO::Async::Stream> implements an established WebSocket
+connection, that has already completed its setup handshaking and is ready to
+pass frames.
 
 Objects of this type would not normally be constructed directly. For WebSocket
 clients, see L<Net::Async::WebSocket::Client>, which is a subclass of this.
@@ -69,6 +69,14 @@ sub configure
    $self->SUPER::configure( %params );
 }
 
+my %FRAMETYPES = (
+   1 => "text",
+   2 => "binary",
+   0x8 => "close",
+   0x9 => "ping",
+   0xa => "pong",
+);
+
 sub on_read
 {
    my $self = shift;
@@ -78,7 +86,9 @@ sub on_read
 
    $framebuffer->append( $$buffref ); # modifies $$buffref
 
-   while( my $frame = $framebuffer->next ) {
+   while( defined( my $frame = $framebuffer->next ) ) {
+      $self->debug_printf( "FRAME " . $FRAMETYPES{$framebuffer->opcode} );
+
       $self->invoke_event( on_frame => $frame );
    }
 
